@@ -1,103 +1,75 @@
-import { Address4, Address6 } from 'ip-address';
+function getElement(selector) {
+  return document.querySelector(selector);
+}
 
-// Seleciona os elementos da página HTML
-const form = document.getElementById('ip-form');
-const tableBody = document.querySelector('#ip-table tbody');
+const ipInput = getElement('#ip-input');
+const maskInput = getElement('#mask-input');
+const versionSelect = getElement('#version-select');
+const addButton = getElement('#add-button');
+const clearButton = getElement('#clear-button');
+const tableBody = getElement('#ip-table-body');
 
-// Armazena os endereços IP cadastrados
 let ipList = [];
 
-// Função para adicionar um novo endereço IP à lista
-function addIP(ip, mask, version) {
-  // Cria um objeto com as informações do endereço IP
-  const newIP = {
-    ip: ip,
-    mask: mask,
-    version: version
-  };
+function addIp() {
+  const ip = ipInput.value.trim();
+  const mask = maskInput.value.trim();
+  const version = versionSelect.value;
 
-  // Verifica se o endereço IP já está cadastrado
-  const ipIndex = ipList.findIndex(item => item.ip === ip);
-  if (ipIndex !== -1) {
-    // Se o endereço IP já está cadastrado, exibe uma mensagem de erro e retorna
-    alert('This IP address is already registered.');
+  if (ip === '' || mask === '') {
+    alert('IP e máscara são campos obrigatórios');
     return;
   }
 
-  // Adiciona o novo endereço IP à lista
-  ipList.push(newIP);
+  ipList.push({ ip, mask, version });
+  renderTable();
+  clearForm();
+}
 
-  // Limpa o formulário
-  form.reset();
-
-  // Atualiza a tabela de endereços IP
+function clearTable() {
+  ipList = [];
   renderTable();
 }
 
-// Função para editar um endereço IP existente
-function editIP(ip, mask, version, index) {
-  // Cria um objeto com as informações atualizadas do endereço IP
-  const updatedIP = {
-    ip: ip,
-    mask: mask,
-    version: version
-  };
-
-  // Substitui o endereço IP antigo pelo atualizado
-  ipList.splice(index, 1, updatedIP);
-
-  // Atualiza a tabela de endereços IP
-  renderTable();
+function clearForm() {
+  ipInput.value = '';
+  maskInput.value = '';
+  versionSelect.value = 'ipv4';
 }
 
-// Função para remover um endereço IP da lista
-function deleteIP(index) {
-  // Remove o endereço IP selecionado da lista
+function deleteIp(index) {
   ipList.splice(index, 1);
-
-  // Atualiza a tabela de endereços IP
   renderTable();
 }
 
-// Função para renderizar a tabela de endereços IP
 function renderTable() {
-  // Limpa o corpo da tabela
   tableBody.innerHTML = '';
 
-  // Itera sobre a lista de endereços IP e cria uma nova linha na tabela para cada item
-  for (let i = 0; i < ipList.length; i++) {
-    const ip = ipList[i].ip;
-    const mask = ipList[i].mask;
-    const version = ipList[i].version;
+  ipList.forEach((ip, index) => {
+    const tr = document.createElement('tr');
 
-    const row = tableBody.insertRow();
-    const ipCell = row.insertCell();
-    const maskCell = row.insertCell();
-    const versionCell = row.insertCell();
-    const actionsCell = row.insertCell();
+    const ipTd = document.createElement('td');
+    ipTd.textContent = ip.ip;
+    tr.appendChild(ipTd);
 
-    ipCell.textContent = ip;
-    maskCell.textContent = mask;
-    versionCell.textContent = version;
+    const maskTd = document.createElement('td');
+    maskTd.textContent = ip.mask;
+    tr.appendChild(maskTd);
 
-    const editButton = document.createElement('button');
-    editButton.textContent = 'Edit';
-    editButton.addEventListener('click', () => {
-      editIPForm(ip, mask, version, i);
-    });
+    const versionTd = document.createElement('td');
+    versionTd.textContent = ip.version;
+    tr.appendChild(versionTd);
 
+    const deleteButtonTd = document.createElement('td');
     const deleteButton = document.createElement('button');
-    deleteButton.textContent = 'Delete';
-    deleteButton.addEventListener('click', () => {
-      deleteIP(i);
-    });
+    deleteButton.textContent = 'Excluir';
+    deleteButton.addEventListener('click', () => deleteIp(index));
+    deleteButtonTd.appendChild(deleteButton);
+    tr.appendChild(deleteButtonTd);
 
-    actionsCell.appendChild(editButton);
-    actionsCell.appendChild(deleteButton);
-  }
+    tableBody.appendChild(tr);
+  });
 }
 
-// Função para preencher o formulário de edição com os dados do endereço IP selecionado
-function editIPForm(ip, mask, version, index) {
-  // Preenche os campos do formulário com os valores do endereço IP selecionado
-  document.getElementById('ip
+addButton.addEventListener('click', addIp);
+clearButton.addEventListener('click', clearTable);
